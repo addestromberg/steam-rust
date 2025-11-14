@@ -1,7 +1,6 @@
-use crate::constants::REGION4_N;
+use crate::constants::REGION_4_TABLE;
 use crate::errors::SteamError;
-use crate::pressure::Pressure;
-use crate::temperature::Temperature;
+use crate::units::{Pressure, Temperature};
 
 //////////////// HELPERS ////////////////////////
 fn solve_beta_from_pressure(pressure: Pressure) -> f64 {
@@ -17,7 +16,7 @@ fn solve_theta_from_temperature(temperature: Temperature) -> f64 {
     // Beräkna theta enligt Eq. (29b):
     // theta = (T/1 K + n9 / (T/1 K) - n10)
     let ts = temperature.as_kelvin();
-    let n = REGION4_N;
+    let n = REGION_4_TABLE;
 
     ts + (n[9] / (ts - n[10]))
 }
@@ -35,7 +34,7 @@ pub fn ts(pressure: Pressure) -> Result<Temperature, SteamError> {
         });
     }
 
-    let n = REGION4_N;
+    let n = REGION_4_TABLE;
     let b = solve_beta_from_pressure(pressure);
 
     // Lös sektion 8.2 Saturation-Temperature Equation (Backward Eq.) sid 35
@@ -77,7 +76,7 @@ pub fn ps(temperature: Temperature) -> Result<Pressure, SteamError> {
     }
 
     let theta = solve_theta_from_temperature(temperature);
-    let n = REGION4_N;
+    let n = REGION_4_TABLE;
     // Lös sektion 8.1 Saturation-Pressure Equation (Basic Eq.) sid 33
     // Ps = Saturated Steam Pressure
     // T* är 1 Kelvin

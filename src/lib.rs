@@ -1,14 +1,13 @@
 pub mod common;
 pub mod constants;
 pub mod errors;
-pub mod pressure;
 pub mod region1;
 pub mod region2;
 pub mod region3;
 pub mod region4;
 pub mod region5;
 pub mod state;
-pub mod temperature;
+pub mod units;
 
 pub use state::Steam;
 
@@ -19,7 +18,7 @@ pub mod saturation {
 
 #[cfg(test)]
 mod tests {
-    use crate::{pressure::Pressure, saturation, temperature::Temperature};
+    use crate::{units::Pressure, saturation, units::Temperature};
 
     #[test]
     fn test_prod_use() {
@@ -42,7 +41,6 @@ mod tests {
     #[test]
     fn test_out_of_bounds() {
         let t = Temperature::from_celsius(1000.0);
-        saturation::ps(t)
-            .expect_err("psat_from_t should fail on unrealistic temperatures");
+        saturation::ps(t).expect_err("psat_from_t should fail on unrealistic temperatures");
     }
 }
