@@ -12,10 +12,37 @@ pub mod temperature;
 
 pub use state::Steam;
 
+/// Saturation line functions (IF97 Region 4)
+pub mod saturation {
+    pub use crate::region4::{psat_from_t, tsat_from_p};
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::{pressure::Pressure, saturation, temperature::Temperature};
+
     #[test]
-    fn it_works() {
-        unimplemented!();
+    fn test_prod_use() {
+        let p = Pressure::from_bar(5.15);
+        println!("Sauturation temperature at {} bar:", p.as_bar());
+        let tsat = saturation::tsat_from_p(p);
+        match tsat {
+            Ok(t) => println!("Tsat = {} °C", t.as_celsius()),
+            Err(e) => println!("Error calculating Tsat: {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_debug_use() {
+        let t = Temperature::from_celsius(282.0);
+        let psat = saturation::psat_from_t(t);
+        dbg!(t.as_celsius(), psat.unwrap().as_bar());
+    }
+
+    #[test]
+    fn test_out_of_bounds() {
+        let t = Temperature::from_celsius(1000.0);
+        saturation::psat_from_t(t)
+            .expect_err("psat_from_t should fail on unrealistic temperatures");
     }
 }

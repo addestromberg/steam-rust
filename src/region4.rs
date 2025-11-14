@@ -4,17 +4,33 @@ use crate::pressure::Pressure;
 use crate::temperature::Temperature;
 
 fn solve_beta_from_pressure(pressure: Pressure) -> f64 {
+    // Solve for beta from pressure in Region 4
     // Beräkna beta enligt Eq. (29a):
     // beta = (p/1 MPa)^0.25
     let ps = pressure.as_mpa();
     (ps / 1.0).powf(0.25)
 }
 
+fn solve_theta_from_temperature(temperature: Temperature) -> f64 {
+    // Solve for theta from temperature in Region 4
+    // Beräkna theta enligt Eq. (29b):
+    // theta = (T/1 K + n9 / (T/1 K) - n10)
+    let ts = temperature.as_kelvin();
+    let n = REGION4_N;
+
+    ts + (n[9] / (ts - n[10]))
+}
+
 pub fn tsat_from_p(pressure: Pressure) -> Result<Temperature, SteamError> {
+    // Calculate saturation temperature from pressure in Region 4
+
     // Check pressure range
     // 611.213 Pa <= p <= 22.064 MPa
     if pressure.as_pa() < 611.213 || pressure.as_mpa() > 22.064 {
-        return Err(SteamError::OutOfRange);
+        return Err(SteamError::OutOfRange {
+            what: "Pressure",
+            value: pressure.as_mpa(),
+        });
     }
 
     let n = REGION4_N;
@@ -40,12 +56,50 @@ pub fn tsat_from_p(pressure: Pressure) -> Result<Temperature, SteamError> {
     if ts > 273.15 && ts < 647.096 {
         return Ok(Temperature::from_kelvin(ts));
     } else {
-        return Err(SteamError::OutOfRange);
+        return Err(SteamError::OutOfRange {
+            what: "Temperature",
+            value: ts,
+        });
     }
 }
 
-pub fn psat_from_t(_temperature: Temperature) -> Pressure {
-    unimplemented!()
+pub fn psat_from_t(temperature: Temperature) -> Result<Pressure, SteamError> {
+    // Calculate saturation pressure from temperature in Region 4
+
+    // Kolla T inom giltigt intervall
+    if temperature.as_kelvin() < 273.15 || temperature.as_kelvin() > 647.096 {
+        return Err(SteamError::OutOfRange {
+            what: "Temperature",
+            value: temperature.as_kelvin(),
+        });
+    }
+
+    let theta = solve_theta_from_temperature(temperature);
+    let n = REGION4_N;
+    // Lös sektion 8.1 Saturation-Pressure Equation (Basic Eq.) sid 33
+    // Ps = Saturated Steam Pressure
+    // T* är 1 Kelvin
+    // P* är 1 MPa
+    // Ps/P* = ( 2c / -b + (b^2 - 4ac) )^4 (Master)
+
+    // där theta = Ts/1 + n9 / (Ts/1) - n10
+    // där a = theta^2 + n1*theta + n2
+    // där b = n3*theta^2 + n4*theta + n5
+    // där c = n6*theta^2 + n7*theta + n8
+    let a = theta.powi(2) + n[1] * theta + n[2];
+    let b = n[3] * theta.powi(2) + n[4] * theta + n[5];
+    let c = n[6] * theta.powi(2) + n[7] * theta + n[8];
+
+    let ps = (2.0 * c / (-b + (b.powi(2) - 4.0 * a * c).sqrt())).powi(4);
+
+    if ps > 0.000611213 && ps < 22.064 {
+        return Ok(Pressure::from_mpa(ps));
+    } else {
+        return Err(SteamError::OutOfRange {
+            what: "Pressure",
+            value: ps,
+        });
+    }
 }
 
 #[cfg(test)]
@@ -78,5 +132,22 @@ mod tests {
 
         // Physical expected ~99.97°C = 373.15 K
         assert!(t1.is_ok(), "Error: {:?}", t1.err());
+    }
+
+    #[test]
+    fn test_psat_at_x_celsius() {
+        let t1 = psat_from_t(Temperature::from_celsius(99.605));
+        match t1 {
+            Ok(press) => {
+                // Physical expected ~1 bar
+                println!("P at 99.605 C: {} bar", press.as_bar());
+                assert!(
+                    (press.as_bar() - 1.0).abs() < 0.01,
+                    "P = {} bar",
+                    press.as_bar()
+                );
+            }
+            Err(e) => panic!("Error: {:?}", e),
+        }
     }
 }

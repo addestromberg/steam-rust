@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub enum SteamError {
-    OutOfRange,
-    InvalidInput,
-    NoConvergence,
-    RegionUnknown,
+    OutOfRange { what: &'static str, value: f64 },
+    InvalidInput { what: &'static str},
+    NoConvergence { what: &'static str},
+    RegionUnknown { what: &'static str},
 }
