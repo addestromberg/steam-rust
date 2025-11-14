@@ -3,6 +3,7 @@ use crate::errors::SteamError;
 use crate::pressure::Pressure;
 use crate::temperature::Temperature;
 
+//////////////// HELPERS ////////////////////////
 fn solve_beta_from_pressure(pressure: Pressure) -> f64 {
     // Solve for beta from pressure in Region 4
     // Beräkna beta enligt Eq. (29a):
@@ -21,7 +22,8 @@ fn solve_theta_from_temperature(temperature: Temperature) -> f64 {
     ts + (n[9] / (ts - n[10]))
 }
 
-pub fn tsat_from_p(pressure: Pressure) -> Result<Temperature, SteamError> {
+//////////////// PUBLIC FUNCTIONS ////////////////////////
+pub fn ts(pressure: Pressure) -> Result<Temperature, SteamError> {
     // Calculate saturation temperature from pressure in Region 4
 
     // Check pressure range
@@ -63,7 +65,7 @@ pub fn tsat_from_p(pressure: Pressure) -> Result<Temperature, SteamError> {
     }
 }
 
-pub fn psat_from_t(temperature: Temperature) -> Result<Pressure, SteamError> {
+pub fn ps(temperature: Temperature) -> Result<Pressure, SteamError> {
     // Calculate saturation pressure from temperature in Region 4
 
     // Kolla T inom giltigt intervall
@@ -102,13 +104,14 @@ pub fn psat_from_t(temperature: Temperature) -> Result<Pressure, SteamError> {
     }
 }
 
+///////////////// TESTS ////////////////////////
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn test_tsat_at_x_bar() {
-        let t1 = tsat_from_p(Pressure::from_bar(1f64));
-        let t67 = tsat_from_p(Pressure::from_bar(67.0f64));
+        let t1 = ts(Pressure::from_bar(1f64));
+        let t67 = ts(Pressure::from_bar(67.0f64));
         match t1 {
             Ok(temp) => {
                 // Physical expected ~99.61°C = 372.76 K
@@ -136,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_psat_at_x_celsius() {
-        let t1 = psat_from_t(Temperature::from_celsius(99.605));
+        let t1 = ps(Temperature::from_celsius(99.605));
         match t1 {
             Ok(press) => {
                 // Physical expected ~1 bar
