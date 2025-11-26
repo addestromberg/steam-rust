@@ -2,7 +2,7 @@
 // Specific gas constant for water/vapor (IF97)
 pub const R: f64 = 0.461526; // in MJ/(kg·K)
 
-pub const REGION_4_TABLE: [f64; 11] = [
+pub const R4_TABLE: [f64; 11] = [
     0.0,                       // Fill for readability
     0.11670521452767e4,        // n1
    -0.72421316703206e6,        // n2
@@ -22,7 +22,7 @@ pub struct R1Coefficient {
     pub n: f64,
 }
 
-pub const REGION_1_TABLE: [R1Coefficient; 34] = [
+pub const R1_TABLE: [R1Coefficient; 34] = [
     // Dummy so index matches IF97 (1–34)
     // R1Coefficient { i: 0, j: 0, n: 0.0 },
 
