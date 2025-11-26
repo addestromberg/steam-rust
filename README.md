@@ -7,7 +7,7 @@ Following the **The International Association for the Properties of Water and St
 ⚠️ **Work in Progress** - This library is currently under active development.
 
 ## Flowchart
-´´´mermaid
+```mermaid
 flowchart TD
 
     A[Input: any of p, T, h, s, v] --> B[Validate inputs]
@@ -32,7 +32,7 @@ flowchart TD
     R5 --> E
 
     E --> F[Return: p, T, h, s, v, ρ, cp, cv, μ, k...]
-´´´
+```
 
 ## Description
 
