@@ -84,7 +84,7 @@ impl SpecificEntropy {
     pub fn into_inner(self) -> f64 { self.0 }
 
     pub fn from_j_per_kg_k(value: f64) -> Self { SpecificEntropy(value) }
-    pub fn from_kj_per_kg_k(value: f64) -> Self { SpecificEntropy(value  * 1000.0) }
+    pub fn from_kj_per_kg_k(value: f64) -> Self { SpecificEntropy(value * 1000.0) }
     pub fn as_j_per_kg_k(self) -> f64 { self.0}
     pub fn as_kj_per_kg_k(self) -> f64 { self.0 / 1000.0 }
 
