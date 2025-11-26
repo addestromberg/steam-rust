@@ -11,7 +11,7 @@ Following the **The International Association for the Properties of Water and St
 flowchart TD
 
     A[Input: any of p, T, h, s, v] --> B[Validate inputs]
-    B --> C{Enough data\nto determine state?}
+    B --> C{Enough data to determine state?}
 
     C -- No --> Z[Return error: insufficient info]
 
