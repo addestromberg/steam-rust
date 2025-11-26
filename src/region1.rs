@@ -32,7 +32,7 @@ fn gamma(pi: f64, tau: f64) -> f64 {
 
     let mut sum = 0.0;
 
-    for coeff in REGION_1_TABLE.iter().skip(1) {
+    for coeff in REGION_1_TABLE.iter() {
         sum += coeff.n * a.powi(coeff.i) * b.powi(coeff.j);
     }
 
@@ -45,17 +45,25 @@ fn gamma_pi(pi: f64, tau: f64) -> f64 {
 
     let mut sum = 0.0;
 
-    for coeff in REGION_1_TABLE.iter().skip(1) {
+    for coeff in REGION_1_TABLE.iter() {
         if coeff.i == 0 {
             continue; // derivative = 0
         }
 
-        sum += -(coeff.i as f64) *
-                coeff.n *
-                a.powi(coeff.i - 1) *
-                b.powi(coeff.j);
-    }
+        let contrib =
+            -(coeff.i as f64)
+            * coeff.n
+            * a.powi(coeff.i - 1)
+            * b.powi(coeff.j);
 
+        println!(
+            "TERM i={} j={} n={} contrib={}",
+            coeff.i, coeff.j, coeff.n, contrib
+        );
+
+        sum += contrib;
+    }
+    println!("gamma_pi sum = {}", sum);
     sum
 }
 
@@ -65,7 +73,7 @@ fn gamma_tau(pi: f64, tau: f64) -> f64 {
 
     let mut sum = 0.0;
 
-    for coeff in REGION_1_TABLE.iter().skip(1) {
+    for coeff in REGION_1_TABLE.iter() {
         if coeff.j == 0 {
             continue; // derivative = 0
         }
@@ -101,7 +109,7 @@ pub fn volume(pressure: Pressure, temperature: Temperature) -> Result<SpecificVo
     }
     
     let t = temperature.as_kelvin();
-    let p = pressure.as_mpa();
+    let p = pressure.as_pa();
 
     // Compute reduced variables once
     let pi_val = pi(pressure);
@@ -111,17 +119,46 @@ pub fn volume(pressure: Pressure, temperature: Temperature) -> Result<SpecificVo
     let gpi = gamma_pi(pi_val, tau_val);
 
     // IF97 Region 1 volume equation
-    let v = (R * t / p) * pi_val * gpi;
+    let v = ((R * t) / pressure.as_pa()) * pi_val * gpi;
 
-    // println!("DEBUG p_mpa    = {}", p);
-    // println!("DEBUG t_kelvin = {}", t);
-    // println!("DEBUG pi       = {}", pi_val);
-    // println!("DEBUG tau      = {}", tau_val);
-    // println!("DEBUG g_pi     = {}", gpi);
-    // println!("DEBUG R        = {}", R);
+    println!("DEBUG p_mpa    = {}", p);
+    println!("DEBUG t_kelvin = {}", t);
+    println!("DEBUG pi       = {}", pi_val);
+    println!("DEBUG tau      = {}", tau_val);
+    println!("DEBUG g_pi     = {}", gpi);
+    println!("DEBUG R        = {}", R);
 
     // Return calclated specific volume
     Ok(SpecificVolume::from_m3_per_kg(v))
+}
+
+pub fn enthalpy(pressure: Pressure, temperature: Temperature) -> Result<f64, SteamError> {
+    // Get specific enthalpy for given pressure and temperature in Region 1
+
+    // Check if inputs are within valid ranges for Region 1
+    if temperature.as_kelvin() < 273.15 {
+        return Err(SteamError::OutOfRange { what: "Crossing lower boundary for region 1", value: temperature.as_kelvin() });
+    }
+    // Check that we aren't crossing saturation curve
+    if temperature.as_kelvin() > saturation::ts(pressure)?.as_kelvin() {
+        return Err(SteamError::RegionUnknown { what: "Crossed saturation line."} );
+    }
+
+    // Check pressure is lower than saturation line.
+    if pressure.as_mpa() < saturation::ps(temperature)?.as_mpa() {
+        return Err(SteamError::RegionUnknown { what: "Crossed saturation line." });
+    }
+
+    let pi_val = pi(pressure);
+    let tau_val = tau(temperature);
+
+    let gpi = gamma_pi(pi_val, tau_val);
+    let gtau = gamma_tau(pi_val, tau_val);
+
+    // IF97 Region 1 enthalpy equation
+    let h = R * temperature.as_kelvin() * (tau_val * gtau + pi_val * gpi);
+
+    Ok(h)
 }
 
 #[cfg(test)]
@@ -144,5 +181,21 @@ mod test {
             Err(e) => panic!("Error calculating volume: {:?}", e),
         }       
         
+    }
+
+    #[test]
+    fn test_enthalpy() {
+        let t: Temperature = Temperature::from_celsius(20.0);
+        let p = Pressure::from_bar(1.0);
+        let h = enthalpy(p, t);
+        match h {
+            Ok(h_val) => {
+                let h_expected = 83.9; // Approximate expected value in kJ/kg
+                let diff = (h_val - h_expected).abs();
+                println!("Calculated enthalpy: {}, Expected enthalpy: {}", h_val, h_expected);
+                assert!(diff < 1.0, "Calculated enthalpy {} differs from expected {}", h_val, h_expected);
+            },
+            Err(e) => panic!("Error calculating enthalpy: {:?}", e),
+        }
     }
 }

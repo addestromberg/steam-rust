@@ -1,6 +1,6 @@
 
 // Specific gas constant for water/vapor (IF97)
-pub const R: f64 = 0.461526e-3; // in MJ/(kg·K)
+pub const R: f64 = 0.461526; // in MJ/(kg·K)
 
 pub const REGION_4_TABLE: [f64; 11] = [
     0.0,                       // Fill for readability
@@ -22,16 +22,16 @@ pub struct R1Coefficient {
     pub n: f64,
 }
 
-pub const REGION_1_TABLE: [R1Coefficient; 35] = [
+pub const REGION_1_TABLE: [R1Coefficient; 34] = [
     // Dummy so index matches IF97 (1–34)
-    R1Coefficient { i: 0, j: 0, n: 0.0 },
+    // R1Coefficient { i: 0, j: 0, n: 0.0 },
 
-    R1Coefficient { i: 0,  j: -2,  n:  0.14632971213167e+0 },   // n1
-    R1Coefficient { i: 0,  j: -1,  n: -0.84548187169114e+0 },   // n2
+    R1Coefficient { i: 0,  j: -2,  n:  0.14632971213167    },   // n1
+    R1Coefficient { i: 0,  j: -1,  n: -0.84548187169114    },   // n2
     R1Coefficient { i: 0,  j:  0,  n: -0.37563603672040e+1 },   // n3
     R1Coefficient { i: 0,  j:  1,  n:  0.33855169168385e+1 },   // n4   
-    R1Coefficient { i: 0,  j:  2,  n: -0.95791963387872e+0 },   // n5
-    R1Coefficient { i: 0,  j:  3,  n:  0.15772038513228e+0 },   // n6
+    R1Coefficient { i: 0,  j:  2,  n: -0.95791963387872    },   // n5
+    R1Coefficient { i: 0,  j:  3,  n:  0.15772038513228    },   // n6
     R1Coefficient { i: 0,  j:  4,  n: -0.16616417199501e-1 },   // n7
     R1Coefficient { i: 0,  j:  5,  n:  0.81214629983568e-3 },   // n8
 
