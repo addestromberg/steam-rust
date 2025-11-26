@@ -17,7 +17,7 @@ flowchart TD
 
     C -- Yes --> D{Determine Region}
     
-    D --> D1[Check boundaries\n R1-R5 ]
+    D --> D1[Check boundaries R1-R5 ]
     D1 --> R1[Region 1 Liquid]
     D1 --> R2[Region 2 Vapor]
     D1 --> R3[Region 3 Dense/Supercritical]
